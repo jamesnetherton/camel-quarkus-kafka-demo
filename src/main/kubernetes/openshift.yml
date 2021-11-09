@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  camel.component.kafka.sasl-jaas-config: b3JnLmFwYWNoZS5rYWZrYS5jb21tb24uc2VjdXJpdHkub2F1dGhiZWFyZXIuT0F1dGhCZWFyZXJMb2dpbk1vZHVsZSByZXF1aXJlZCBvYXV0aC5jbGllbnQuaWQ9c3J2Yy1hY2N0LTc1MGQ3OTg2LTlmNzktNDhmNy1hZTY2LTIxYjUxMDY3MTZhOSBvYXV0aC5jbGllbnQuc2VjcmV0PTRkNDQ1ZDY5LWVkMDEtNGM1Zi1iNGJiLWNjMjcxN2UwOWQxNSBvYXV0aC50b2tlbi5lbmRwb2ludC51cmk9aHR0cHM6Ly9pZGVudGl0eS5hcGkub3BlbnNoaWZ0LmNvbS9hdXRoL3JlYWxtcy9yaG9hcy9wcm90b2NvbC9vcGVuaWQtY29ubmVjdC90b2tlbg==
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/name: camel-quarkus-examples-kafka
+  name: camel-quarkus-kafka-mcs-secret
+type: Opaque
