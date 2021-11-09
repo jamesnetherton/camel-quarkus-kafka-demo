@@ -22,24 +22,15 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jackson.JacksonDataFormat;
 
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
-/**
- * TODO:
- *  - Fix topic names
- *  - Fix stock terminology
- */
 public class Routes extends RouteBuilder {
 
     private final List<ExchangeRate> exchangeRates = new CopyOnWriteArrayList<>();
-
-    @Inject
-    ExchangeRateGenerator exchangeRateGenerator;
 
     @Override
     public void configure() throws Exception {
