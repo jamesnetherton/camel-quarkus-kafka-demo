@@ -34,6 +34,7 @@ public class Routes extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
         from("timer:generateExchangeRates?period={{timer.period}}")
             .bean("exchangeRateGenerator")
             .marshal("jackson")
