@@ -86,6 +86,13 @@ oc create secret generic camel-quarkus-kafka-demo-secret \
   --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret"
 ----
 
+Optionally you can label the secret so that it can be deleted as part of the clean up steps described below.
+
+[source,shell]
+----
+kubectl label secret camel-quarkus-kafka-demo-secret "app.kubernetes.io/name"="camel-quarkus-kafka-demo"
+----
+
 ==== JVM mode
 
 [source,shell]
