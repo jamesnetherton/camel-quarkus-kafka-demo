@@ -80,7 +80,7 @@ Create a secret in your OpenShift cluster and project for the Kafka client crede
 
 [source,shell]
 ----
-oc create secret generic camel-quarkus-kafka-demo-secret \
+$ oc create secret generic camel-quarkus-kafka-demo-secret \
   --from-literal=KAFKA_BROKERS="your-broker-url" \
   --from-literal=OAUTH_CLIENT_ID="your-oauth-client-id" \
   --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret"
@@ -90,17 +90,47 @@ Optionally you can label the secret so that it can be deleted as part of the cle
 
 [source,shell]
 ----
-kubectl label secret camel-quarkus-kafka-demo-secret "app.kubernetes.io/name"="camel-quarkus-kafka-demo"
+$ kubectl label secret camel-quarkus-kafka-demo-secret "app.kubernetes.io/name"="camel-quarkus-kafka-demo"
 ----
 
-==== JVM mode
+==== Creating a KafkaConnection and Service Binding
+
+As an alternative to secrets you can leverage https://github.com/servicebinding/spec[Kubernetes Service Binding].
+
+To do this, first remove or comment out all of the configuration properties prefixed with `%prod.camel.component.kafka` from `application.properties`. Also add an additional dependency to the project `pom.xml`:
+
+[source,xml]
+----
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-kubernetes-service-binding</artifactId>
+</dependency>
+----
+
+Next download and install the https://github.com/redhat-developer/app-services-guides/tree/main/rhoas-cli#installing-the-rhoas-cli[Red Hat OpenShift Application Services Command Line Interface].
+
+Connect your OpenShift cluster to your Kafka instance.
+
+[source,shell]
+----
+$ rhoas cluster connect --namespace $PROJECT
+----
+
+After your application is deployed (see instructions below), create the service binding.
+
+[source,shell]
+----
+$ rhoas cluster bind --namespace your-project-name
+----
+
+==== Deploying in JVM mode
 
 [source,shell]
 ----
 $ mvn clean package -DskipTests -Dquarkus.kubernetes.deploy=true
 ----
 
-==== Native mode
+==== Deploying in native mode
 
 [source,shell]
 ----
