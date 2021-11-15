@@ -14,7 +14,7 @@ import java.util.Random;
 public class ExchangeRateGenerator {
 
     private static final int LOWEST_QUOTE_VALUE = 860000;
-    private static final int HIGHEST_QUOTE_VALUE = 861000;
+    private static final int HIGHEST_QUOTE_VALUE = 860100;
     private final Random random = new Random(LOWEST_QUOTE_VALUE);
 
     public void process(Exchange exchange) throws Exception {

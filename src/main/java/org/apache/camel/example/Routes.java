@@ -35,15 +35,17 @@ public class Routes extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        // Generate exchange rates
         from("timer:generateExchangeRates?period={{timer.period}}")
             .bean("exchangeRateGenerator")
             .marshal("jackson")
             .log("Producing to Kafka topic: ${body}")
             .to("kafka:{{kafka.topic}}");
 
+        // Consume exchange rates
         from("kafka:{{kafka.topic}}")
-            .log("Consumed from Kafka topic: ${body}")
             .unmarshal("jackson")
+            .log("Consumed from Kafka topic: ${body}")
             .process(new Processor() {
                 @Override
                 public void process(Exchange exchange) throws Exception {
@@ -54,13 +56,9 @@ public class Routes extends RouteBuilder {
                 }
             });
 
+        // Expose collected exchange rates to the web UI
         from("platform-http:/exchangerates")
-                .process(new Processor() {
-                    @Override
-                    public void process(Exchange exchange) throws Exception {
-                        exchange.getMessage().setBody(exchangeRates);
-                    }
-                })
+                .setBody().constant(exchangeRates)
                 .marshal("jackson");
     }
 

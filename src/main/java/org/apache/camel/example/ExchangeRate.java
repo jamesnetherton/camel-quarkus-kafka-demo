@@ -26,8 +26,8 @@ public class ExchangeRate {
         return value;
     }
 
-    public void setValue(int quote) {
-        this.value = quote;
+    public void setValue(int value) {
+        this.value = value;
     }
 
     @Override
@@ -41,5 +41,10 @@ public class ExchangeRate {
     @Override
     public int hashCode() {
         return Objects.hash(timestamp, value);
+    }
+
+    @Override
+    public String toString() {
+        return "ExchangeRate: timestamp = " + this.timestamp + ", value = " + this.value;
     }
 }

@@ -53,7 +53,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Import BOM -->
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
