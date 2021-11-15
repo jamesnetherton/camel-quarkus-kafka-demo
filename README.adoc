@@ -1,109 +1,58 @@
-= Kafka example : A Camel Quarkus example
-:cq-example-description: An example that shows how to produce and consume messages in a Kafka topic, created on a Kafka cluster with OpenShift Streams for Apache Kafka.
+= Camel Quarkus Kafka Demo
 
-{cq-description}
+A demonstration of Camel Quarkus and Kafka. This application is composed of 3 Camel routes.
 
-TIP: Check the https://camel.apache.org/camel-quarkus/latest/first-steps.html[Camel Quarkus User guide] for prerequisites
-and other general information.
+1. Some fictitious exchange rates for the US Dollar and Euro currencies are generated as an `ExchangeRate` POJO. The POJO is serialized to JSON and sent to a Kafka topic.
 
-== Prerequisites
+2. The exchange rate JSON is consumed from the Kafka topic, marshalled back to the `ExchangeRate` POJO and stored in an array.
 
-This quickstart assumes that you already have access to Red Hat OpenShift Streams for Apache Kafka[https://developers.redhat.com/products/red-hat-openshift-streams-for-apache-kafka/getting-started].
+3. An `platform-http` consumer endpoint exposes the collected exchange rates by serializing the `ExchageRate` array to JSON. This endpoint is polled by a web UI and the results are displayed in a chart at http://localhost:8080.
 
-== Provision a Kafka cluster with OpenShift Streams for Apache Kafka
-You can provision either using the UI or RHOAS cli, as described in following sections
 
-== Provision a Kafka cluster with Openshift Streams for Apache Kafka using UI
+== Dev mode
+
+To run the application in dev mode:
+
+[source,shell]
+----
+$ mvn quarkus:dev
+----
+
+When running in dev mode, https://quarkus.io/guides/kafka-dev-services[Quarkus Kafka dev services] initializes a local Kafka broker. The Camel kafka component can be made to use this broker by setting the appropriate property in `application.properties`.
+
+[source,properties]
+----
+camel.component.kafka.brokers=${kafka.bootstrap.servers}
+----
+
+Every 10 seconds the console logs will show that Kafka messages are being produced and consumed.
+
+[source,shell]
+----
+2021-11-15 09:56:37,646 INFO  [route1] (Camel (camel-1) thread #1 - timer://generateExchangeRates) Producing to Kafka topic: {"timestamp":1636970197,"value":860085}
+2021-11-15 09:56:37,691 INFO  [route2] (Camel (camel-1) thread #0 - KafkaConsumer[exchangerates]) Consumed from Kafka topic: ExchangeRate: timestamp = 1636970197, value = 860085
+----
+
+Browse to the http://localhost:8080[web UI] to see a chart of the generated exchange rates.
+
+== Prod mode
+
+In prod mode, the expectation is that you have a Kafka cluster with OpenShift Streams to connect to.
+
+=== Provisioning a Kafka cluster with Openshift Streams for Apache Kafka
+
 1. Go to https://cloud.redhat.com/application-services[cloud.redhat.com], and log with your Red Hat account, or create one.
 2. Create a new Kafka instance, following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_b4f95791-b992-429d-9e8e-cceb63ae829f[Creating a Kafka instance in OpenShift Streams for Apache Kafka Guide].
-3. Create a topic named `test` following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_e7458089-1dfe-4d51-bfd0-990014e7226c[Creating a Kafka topic in OpenShift Streams for Apache Kafka Guide].
+3. Create a topic named `exchangerates` following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_e7458089-1dfe-4d51-bfd0-990014e7226c[Creating a Kafka topic in OpenShift Streams for Apache Kafka Guide].
 4. Create a set of credentials, following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_7cb5e3f0-4b76-408d-b245-ff6959d3dbf7[Creating a service account to connect to a Kafka instance in OpenShift Streams for Apache Kafka Guide].
 
-== Provision a Kafka cluster with Openshift Streams for Apache Kafka using RHOAS cli
-1. Open the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f520e427-cad2-40ce-823d-96234ccbc047[Getting started with the rhoas CLI documentation]
-2. Install the RHOAS cli, following the `Installing the rhoas CLI` section.
-3. Login to the Openshift Streams for Apache Kafka, following the `Logging in to rhoas` section.
-4. Create a new Kafka instance, following the `Creating a Kafka instance` in the `Using rhoas` section.
-5. Create a topic named `test`, following the `Creating a Kafka topic` in the `Using rhoas` section.
-6. Create a set of credentials, following the `Creating a service account` in the `Using rhoas` section.
+=== Kafka client credentials
 
-== Set the right Kafka client credentials
-In the Kafka Instances page of the web console, for the relevant Kafka instance that you want to connect to, select the options icon (three vertical dots) and click View connection information.
+In the Kafka Instances page of the web console, for the relevant Kafka instance that you want to connect to, select the options icon (three vertical dots) and click View connection information. Copy the Bootstrap server and the SASL / OAUTHBEARER token endpoint URL.
 
-Copy the Bootstrap server and  the SASL/OAUTHBEARER Token endpoint URL, needed for the configuration.
-
-If you want to connect to your Kafka instance using SASL Plain, you'd need to uncomment the Kafka credentials with SASL Plain section in `src/main/resources/application.properties`.
-
-[source,shell]
-----
-camel.component.kafka.brokers=<YOUR_KAFKA_BROKERS_URL>
-camel.component.kafka.security-protocol=SASL_SSL
-camel.component.kafka.sasl-mechanism=PLAIN
-camel.component.kafka.sasl-jaas-config=org.apache.kafka.common.security.plain.PlainLoginModule required username="<YOUR_KAFKA_SASL_CLIENT_ID>" password="<YOUR_KAFKA_SASL_CLIENT_SECRET>";
-----
-- Change YOUR_KAFKA_SASL_CLIENT_ID by the Client ID
-- Change YOUR_KAFKA_SASL_CLIENT_SECRET by the Client Secret
-- Change YOUR_KAFKA_BROKERS_URL by the Bootstrap server
-
-
-If you want to connect to your Kafka instance using SASL Oauth Bearer, you'd need to uncomment the Kafka credentials with SASL Oauth Bearer section in `src/main/resources/application.properties`.
-
-[source,shell]
-----
-camel.component.kafka.brokers = <YOUR_KAFKA_BROKERS_URL>
-camel.component.kafka.security-protocol = SASL_SSL
-camel.component.kafka.sasl-mechanism = OAUTHBEARER
-camel.component.kafka.sasl-jaas-config = org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
-        oauth.client.id="<YOUR_KAFKA_SASL_CLIENT_ID>" \
-        oauth.client.secret="<YOUR_KAFKA_SASL_CLIENT_SECRET>" \
-        oauth.token.endpoint.uri="<YOUR_KAFKA_SASL_OAUTHBEARER_TOKEN_URL>" ;
-camel.component.kafka.additional-properties[sasl.login.callback.handler.class] = io.strimzi.kafka.oauth.client.JaasClientOauthLoginCallbackHandler
-----
-- Change YOUR_KAFKA_SASL_CLIENT_ID by the Client ID
-- Change YOUR_KAFKA_SASL_CLIENT_SECRET by the Client Secret
-- Change YOUR_KAFKA_BROKERS_URL by the Bootstrap server
-- Change YOUR_KAFKA_SASL_OAUTHBEARER_TOKEN_URL by the SASL/OAUTHBEARER Token endpoint URL
-
-== Start in Development mode
-
-Run the application in development mode.
-
-[source,shell]
-----
-$ mvn clean compile quarkus:dev
-----
-
-The above command compiles the project, starts the application and lets the Quarkus tooling watch for changes in your
-workspace. Any modifications in your project will automatically take effect in the running application.
-
-TIP: Please refer to the Development mode section of
-https://camel.apache.org/camel-quarkus/latest/first-steps.html#_development_mode[Camel Quarkus User guide] for more details.
-
-You should start to see some log messages appearing on the console.
-
-Every 10 seconds the timer component triggers the generation of random Message and send it to the Kafka topic `Test`.
-
-[source,shell]
-----
-[FromTimer2Kafka] (Camel (camel-1) thread #2 - KafkaProducer[test]) Message sent correctly sent to the topic! : "Message #1"
-----
-
-Next a Kafka consumer reads the messages and put them in a seda queue.
-
-[source,shell]
-----
-[FromKafka2Seda] (Camel (camel-1) thread #0 - KafkaConsumer[test]) Received : "Message #1"
-----
-
-Next pull a message from the queue :
-[source,shell]
-----
-$ curl -X GET http://0.0.0.0:8080/example
-----
+You can choose to modify `application.properties` and replace the `${KAFKA_BROKERS}`, `${OAUTH_CLIENT_ID}` and `${OAUTH_CLIENT_SECRET}` placeholder values with your credentials. Or set environment variables for `KAFKA_BROKERS`, `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`. The later option may be better as it allows for the configuration to be provided by Kubernetes secrets when deploying to OpenShift.
 
 === Package and run the application
-
-Once you are done with developing you may want to package and run the application.
 
 ==== JVM mode
 
@@ -115,9 +64,6 @@ $ java -jar target/quarkus-app/quarkus-run.jar
 
 ==== Native mode
 
-IMPORTANT: Native mode requires having GraalVM and other tools installed. Please check the Prerequisites section
-of https://camel.apache.org/camel-quarkus/latest/first-steps.html#_prerequisites[Camel Quarkus User guide].
-
 To prepare a native executable using GraalVM, run the following command:
 
 [source,shell]
@@ -127,14 +73,18 @@ $ ./target/*-runner
 ----
 
 === Deploying to OpenShift
-Create a new project named `camel-kafka-ns`.
+
+==== Kafka client credentials secret
+
+Create a secret in your OpenShift cluster and project for the Kafka client credentials.
 
 [source,shell]
 ----
-$ oc new-project camel-kafka-ns
+oc create secret generic camel-quarkus-kafka-demo-secret \
+  --from-literal=KAFKA_BROKERS="your-broker-url" \
+  --from-literal=OAUTH_CLIENT_ID="your-oauth-client-id" \
+  --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret"
 ----
-
-To deploy the application to OpenShift run the following command.
 
 ==== JVM mode
 
@@ -150,45 +100,36 @@ $ mvn clean package -DskipTests -Dquarkus.kubernetes.deploy=true
 $ mvn clean package -DskipTests -Dquarkus.kubernetes.deploy=true -Pnative
 ----
 
-[NOTE]
-====
-If you need to configure container resource limits & requests, or enable the Quarkus Kubernetes client to trust self signed certificates, you can find these configuration options in `src/main/resources/application.properties`. Simply uncomment them and set your desired values.
-====
-
 Check the pod is running.
 
 [source,shell]
 ----
 $ oc get pods
 NAME                                           READY   STATUS    RESTARTS   AGE
-camel-quarkus-examples-kafka-dbc56974b-ph29m   1/1     Running   0          2m34s
+camel-quarkus-kafka-demo-dbc56974b-ph29m   1/1     Running   0          2m34s
 ----
 
 Tail the application logs.
 
 [source,shell]
 ----
-$ oc logs -f camel-quarkus-examples-kafka-dbc56974b-ph29m
+$ oc logs -f camel-quarkus-kafka-demo-dbc56974b-ph29m
 ----
 
 Get the service route.
 [source,shell]
 ----
-$ oc get route camel-quarkus-examples-kafka
+$ oc get route camel-quarkus-kafka-demo
 ----
 
-Next use the route, to pull a message from the queue :
-[source,shell]
-----
-$ curl -X GET <YOUR_ROUTE>/example
-----
+Paste the route URL into your browser to see the web UI and view that chart of generated exchange rates.
+
 
 To clean up do.
 
 [source,shell]
 ----
-$ oc delete all -l app.kubernetes.io/name=camel-quarkus-examples-kafka
-$ oc delete project camel-kafka-ns
+$ oc delete all -l app.kubernetes.io/name=camel-quarkus-kafka-demo
 ----
 
 For more information about deploying Quarkus applications to OpenShift, refer to the https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/1.11/html/deploying_your_quarkus_applications_to_openshift/ref-openshift-build-strategies-and-quarkus_quarkus-openshift[documentation].
