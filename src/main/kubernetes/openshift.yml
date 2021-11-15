@@ -6,6 +6,6 @@ data:
 kind: Secret
 metadata:
   labels:
-    app.kubernetes.io/name: camel-quarkus-examples-kafka
-  name: camel-quarkus-kafka-mcs-secret
+    app.kubernetes.io/name: camel-quarkus-kafka-demo
+  name: camel-quarkus-kafka-demo-secret
 type: Opaque

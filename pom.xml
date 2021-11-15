@@ -20,25 +20,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>camel-quarkus-examples-kafka</artifactId>
-    <groupId>org.apache.camel.quarkus.examples</groupId>
-    <version>2.2.0-SNAPSHOT</version>
+    <artifactId>camel-quarkus-kafka-demo</artifactId>
+    <groupId>org.demo</groupId>
+    <version>1.0-SNAPSHOT</version>
 
-    <name>Camel Quarkus :: Examples :: Kafka</name>
-    <description>Camel Quarkus Example :: Kafka</description>
+    <name>Camel Quarkus Kafka Demo</name>
+    <description>Camel Quarkus Kafka Demo</description>
 
     <properties>
-<!--        <quarkus.platform.version>2.2.3.Final-redhat-00013</quarkus.platform.version>-->
-        <quarkus.platform.version>2.2.3.Final</quarkus.platform.version>
-<!--        <camel-quarkus.platform.version>${quarkus.platform.version}</camel-quarkus.platform.version>-->
-        <camel-quarkus.platform.version>2.2.0</camel-quarkus.platform.version>
+        <quarkus.platform.version>2.2.3.Camel-temporary-redhat-0001</quarkus.platform.version>
+        <camel-quarkus.platform.version>${quarkus.platform.version}</camel-quarkus.platform.version>
 
-<!--        <quarkus.platform.group-id>com.redhat.quarkus.platform</quarkus.platform.group-id>-->
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.group-id>com.redhat.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <camel-quarkus.platform.group-id>${quarkus.platform.group-id}</camel-quarkus.platform.group-id>
-<!--        <camel-quarkus.platform.artifact-id>quarkus-camel-bom</camel-quarkus.platform.artifact-id>-->
-        <camel-quarkus.platform.artifact-id>camel-quarkus-bom</camel-quarkus.platform.artifact-id>
+        <camel-quarkus.platform.artifact-id>quarkus-camel-bom</camel-quarkus.platform.artifact-id>
 
         <kafka-oauth-client.version>0.7.1.redhat-00003</kafka-oauth-client.version>
 
@@ -53,7 +49,6 @@
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
         <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
-        <mycila-license.version>3.0</mycila-license.version>
     </properties>
 
     <dependencyManagement>
@@ -67,17 +62,11 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-<!--                <groupId>${camel-quarkus.platform.group-id}</groupId>-->
-                <groupId>org.apache.camel.quarkus</groupId>
+                <groupId>${camel-quarkus.platform.group-id}</groupId>
                 <artifactId>${camel-quarkus.platform.artifact-id}</artifactId>
                 <version>${camel-quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.strimzi</groupId>
-                <artifactId>kafka-oauth-client</artifactId>
-                <version>${kafka-oauth-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -117,22 +106,15 @@
             <artifactId>quarkus-openshift</artifactId>
         </dependency>
 
-        <!--
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-kubernetes-service-binding</artifactId>
-        </dependency>
-        -->
-
-        <!-- this oauth client is used for SASL Oauth Bearer -->
-        <dependency>
-            <groupId>io.strimzi</groupId>
-            <artifactId>kafka-oauth-client</artifactId>
-        </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.strimzi</groupId>
+            <artifactId>kafka-oauth-client</artifactId>
+            <version>${kafka-oauth-client.version}</version>
         </dependency>
 
         <!-- Test -->
@@ -217,6 +199,28 @@
             </snapshots>
         </repository>
         <repository>
+            <name>indy-temporary-builds</name>
+            <id>indy-temporary-builds</id>
+            <url>https://indy.psi.redhat.com/api/content/maven/hosted/temporary-builds/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <name>indy</name>
+            <id>indy</id>
+            <url>https://indy.psi.redhat.com/api/content/maven/hosted/pnc-builds/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>redhat-ga-repository</id>
             <url>https://maven.repository.redhat.com/ga/</url>
             <releases>
@@ -239,6 +243,38 @@
     </repositories>
 
     <pluginRepositories>
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <name>indy-temporary-builds</name>
+            <id>indy-temporary-builds</id>
+            <url>https://indy.psi.redhat.com/api/content/maven/hosted/temporary-builds/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <name>indy</name>
+            <id>indy</id>
+            <url>https://indy.psi.redhat.com/api/content/maven/hosted/pnc-builds/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
         <pluginRepository>
             <id>redhat-ga-repository</id>
             <url>https://maven.repository.redhat.com/ga/</url>
