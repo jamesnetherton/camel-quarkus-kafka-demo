@@ -63,7 +63,7 @@ public class Routes extends RouteBuilder {
     }
 
     @Singleton
-    @Named
+    @Named("jackson")
     public JacksonDataFormat jackson (ObjectMapper objectMapper) {
         JacksonDataFormat dataFormat = new JacksonDataFormat();
         dataFormat.setObjectMapper(objectMapper);

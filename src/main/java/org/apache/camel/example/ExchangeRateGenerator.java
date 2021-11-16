@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.Random;
 
 @Singleton
-@Named
+@Named("exchangeRateGenerator")
 @RegisterForReflection(fields = false)
 public class ExchangeRateGenerator {
 
