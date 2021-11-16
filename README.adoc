@@ -50,7 +50,7 @@ In prod mode, the expectation is that you have a Kafka cluster with OpenShift St
 
 In the Kafka Instances page of the web console, for the relevant Kafka instance that you want to connect to, select the options icon (three vertical dots) and click View connection information. Copy the Bootstrap server and the SASL / OAUTHBEARER token endpoint URL.
 
-You can choose to modify `application.properties` and replace the `${KAFKA_BROKERS}`, `${OAUTH_CLIENT_ID}` and `${OAUTH_CLIENT_SECRET}` placeholder values with your credentials. Or set environment variables for `KAFKA_BROKERS`, `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET`. The later option may be better as it allows for the configuration to be provided by Kubernetes secrets when deploying to OpenShift.
+You can choose to modify `application.properties` and replace the `${KAFKA_BROKERS}`, `${OAUTH_CLIENT_ID}`, `${OAUTH_CLIENT_SECRET}` & `${OAUTH_TOKEN_ENDPOINT_URI}` placeholder values with your credentials. Or set environment variables for `KAFKA_BROKERS`, `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET` and `OAUTH_TOKEN_ENDPOINT_URI`. The later option may be better as it allows for the configuration to be provided by Kubernetes secrets when deploying to OpenShift.
 
 === Package and run the application
 
@@ -83,7 +83,8 @@ Create a secret in your OpenShift cluster and project for the Kafka client crede
 $ oc create secret generic camel-quarkus-kafka-demo-secret \
   --from-literal=KAFKA_BROKERS="your-broker-url" \
   --from-literal=OAUTH_CLIENT_ID="your-oauth-client-id" \
-  --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret"
+  --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret" \
+  --from-literal=OAUTH_TOKEN_ENDPOINT_URI="your-oauth-token-endpoint-uri"
 ----
 
 Optionally you can label the secret so that it can be deleted as part of the clean up steps described below.
