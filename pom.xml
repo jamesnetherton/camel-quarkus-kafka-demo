@@ -96,6 +96,10 @@
 
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-kubernetes-service-binding</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-openshift</artifactId>
         </dependency>
 
