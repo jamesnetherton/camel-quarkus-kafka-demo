@@ -36,7 +36,7 @@ public class Routes extends RouteBuilder {
     public void configure() throws Exception {
 
         // Generate exchange rates
-        from("timer:generateExchangeRates?period={{timer.period}}")
+        from("timer:generateExchangeRates?period={{timer.period}}&delay=5s")
             .bean("exchangeRateGenerator")
             .marshal("jackson")
             .log("Producing to Kafka topic: ${body}")
