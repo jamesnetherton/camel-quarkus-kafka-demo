@@ -3,7 +3,6 @@ package org.apache.camel.example;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
-import io.restassured.response.ResponseBodyExtractionOptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -11,8 +10,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 @QuarkusTest
 public class ExchangeRatesTest {
