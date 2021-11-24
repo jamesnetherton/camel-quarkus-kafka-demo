@@ -1,0 +1,141 @@
+= Camel Quarkus Kafka Demo
+
+A demonstration of Camel Quarkus and Kafka. This application is composed of 3 Camel routes.
+
+1. Some fictitious exchange rates for the US Dollar and Euro currencies are generated as an `ExchangeRate` POJO. The POJO is serialized to JSON and sent to a Kafka topic.
+
+2. The exchange rate JSON is consumed from the Kafka topic, marshalled back to the `ExchangeRate` POJO and stored in an array.
+
+3. An `platform-http` consumer endpoint exposes the collected exchange rates by serializing the `ExchangeRate` array to JSON. This endpoint is polled by a web UI and the results are displayed in a chart at http://localhost:8080.
+
+NOTE: This project will eventually replace the original https://github.com/apache/camel-quarkus-examples/tree/main/kafka[Camel Quarkus kafka Example Project].
+
+== Dev mode
+
+To run the application in dev mode:
+
+[source,shell]
+----
+$ mvn quarkus:dev
+----
+
+When running in dev mode, https://quarkus.io/guides/kafka-dev-services[Quarkus Kafka dev services] initializes a local Kafka broker and the Camel Kafka component is automatically configured to use it.
+
+Every 2 seconds the console logs will show that Kafka messages are being produced and consumed.
+
+[source,shell]
+----
+2021-11-15 09:56:37,646 INFO  [route1] (Camel (camel-1) thread #1 - timer://generateExchangeRates) Producing to Kafka topic: {"timestamp":1636970197,"value":860085}
+2021-11-15 09:56:37,691 INFO  [route2] (Camel (camel-1) thread #0 - KafkaConsumer[exchangerates]) Consumed from Kafka topic: ExchangeRate: timestamp = 1636970197, value = 860085
+----
+
+Browse to the http://localhost:8080[web UI] to see a chart of the generated exchange rates.
+
+== Prod mode
+
+In prod mode, the expectation is that you have a Kafka cluster with OpenShift Streams to connect to.
+
+=== Provisioning a Kafka cluster with Openshift Streams for Apache Kafka
+
+1. Go to https://cloud.redhat.com/application-services[cloud.redhat.com], and log with your Red Hat account, or create one.
+2. Create a new Kafka instance, following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_b4f95791-b992-429d-9e8e-cceb63ae829f[Creating a Kafka instance in OpenShift Streams for Apache Kafka Guide].
+3. Create a topic named `exchangerates` following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_e7458089-1dfe-4d51-bfd0-990014e7226c[Creating a Kafka topic in OpenShift Streams for Apache Kafka Guide].
+4. Create a set of credentials, following the https://access.redhat.com/documentation/en-us/red_hat_openshift_streams_for_apache_kafka/1/guide/f351c4bd-9840-42ef-bcf2-b0c9be4ee30a#_7cb5e3f0-4b76-408d-b245-ff6959d3dbf7[Creating a service account to connect to a Kafka instance in OpenShift Streams for Apache Kafka Guide].
+
+IMPORTANT: The minimal service account permissions needed to run this example project are : setting the topic `exchangerates` access to `Allow All`, and setting the consumer Group `*` access to `Allow Read`
+
+=== Kafka client credentials
+
+In the Kafka Instances page of the web console, for the relevant Kafka instance that you want to connect to, select the options icon (three vertical dots) and click View connection information. Copy the Bootstrap server and the SASL / OAUTHBEARER token endpoint URL.
+
+You can choose to modify `application.properties` and replace the `${KAFKA_BROKERS}`, `${OAUTH_CLIENT_ID}`, `${OAUTH_CLIENT_SECRET}` & `${OAUTH_TOKEN_ENDPOINT_URI}` placeholder values with your credentials. Or set environment variables for `KAFKA_BROKERS`, `OAUTH_CLIENT_ID`, `OAUTH_CLIENT_SECRET` and `OAUTH_TOKEN_ENDPOINT_URI`. The later option may be better as it allows for the configuration to be provided by Kubernetes secrets when deploying to OpenShift.
+
+=== Package and run the application
+
+==== JVM mode
+
+[source,shell]
+----
+$ mvn clean package -DskipTests
+$ java -jar target/quarkus-app/quarkus-run.jar
+----
+
+==== Native mode
+
+To prepare a native executable using GraalVM, run the following command:
+
+[source,shell]
+----
+$ mvn clean package -DskipTests -Pnative
+$ ./target/*-runner
+----
+
+=== Deploying to OpenShift
+
+==== Kafka client credentials secret
+
+Create a secret in your OpenShift cluster and project for the Kafka client credentials.
+
+[source,shell]
+----
+$ oc create secret generic camel-quarkus-kafka-demo-secret \
+  --from-literal=KAFKA_BROKERS="your-broker-url" \
+  --from-literal=OAUTH_CLIENT_ID="your-oauth-client-id" \
+  --from-literal=OAUTH_CLIENT_SECRET="your-oauth-client-secret" \
+  --from-literal=OAUTH_TOKEN_ENDPOINT_URI="your-oauth-token-endpoint-uri"
+----
+
+Optionally you can label the secret so that it can be deleted as part of the clean up steps described below.
+
+[source,shell]
+----
+$ oc label secret camel-quarkus-kafka-demo-secret "app.kubernetes.io/name"="camel-quarkus-kafka-demo"
+----
+
+==== Deploying in JVM mode
+
+[source,shell]
+----
+$ mvn clean package -DskipTests -Dquarkus.kubernetes.deploy=true
+----
+
+==== Deploying in native mode
+
+[source,shell]
+----
+$ mvn clean package -DskipTests -Dquarkus.kubernetes.deploy=true -Pnative
+----
+
+Check the pod is running.
+
+[source,shell]
+----
+$ oc get pods
+NAME                                           READY   STATUS    RESTARTS   AGE
+camel-quarkus-kafka-demo-dbc56974b-ph29m   1/1     Running   0          2m34s
+----
+
+Tail the application logs.
+
+[source,shell]
+----
+$ oc logs -f camel-quarkus-kafka-demo-dbc56974b-ph29m
+----
+
+Get the service route.
+[source,shell]
+----
+$ oc get route camel-quarkus-kafka-demo
+----
+
+Paste the route URL into your browser to see the web UI and view that chart of generated exchange rates.
+
+
+To clean up do.
+
+[source,shell]
+----
+$ oc delete all -l app.kubernetes.io/name=camel-quarkus-kafka-demo
+----
+
+For more information about deploying Quarkus applications to OpenShift, refer to the https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus/1.11/html/deploying_your_quarkus_applications_to_openshift/ref-openshift-build-strategies-and-quarkus_quarkus-openshift[documentation].
